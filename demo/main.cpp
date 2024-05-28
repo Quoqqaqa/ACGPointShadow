@@ -169,9 +169,6 @@ int main(int argc, char *argv[])
    light.get().setAmbient({ 0.3f, 0.3f, 0.3f });
    light.get().setColor({ 1.5f, 1.5f, 1.5f });
    light.get().setProjMatrix(glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 1000.0f)); // Orthographic projection   
-
-   glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
-
    
    // Get torus knot ref:
    Eng::Mesh &tknot = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Torus Knot001"));   
@@ -190,9 +187,6 @@ int main(int argc, char *argv[])
    std::cout << "Entering main loop..." << std::endl;      
    std::chrono::high_resolution_clock timer;
    float fpsFactor = 0.0f;
-
-   
-
    while (eng.processEvents())
    {      
       auto start = timer.now();
