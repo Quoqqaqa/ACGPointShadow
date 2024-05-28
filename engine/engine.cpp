@@ -435,7 +435,7 @@ uint64_t ENG_API Eng::Base::getFrameNr() const
  */
 glm::ivec2 ENG_API Eng::Base::getWindowSize() const
 {
-   return glm::ivec2(reserved->windowSizeX, reserved->windowSizeY);
+   return glm::ivec2(1024, 720);
 }
 
 
