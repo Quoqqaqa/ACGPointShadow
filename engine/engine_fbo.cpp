@@ -258,12 +258,12 @@ bool ENG_API Eng::Fbo::attachTexture(const Eng::Texture &texture, uint32_t level
          att.type = Eng::Fbo::Attachment::Type::depth_texture;
          glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.getOglHandle(), 0);         
          break;
-
+         /*Add switch case, attach the texture of type depth_cube to fbo */
       case Eng::Texture::Format::depth_cube:
         att.type = Eng::Fbo::Attachment::Type::depth_cube_texture;
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture.getOglHandle(), 0);
         break;
-
+        /* ---------------- */
       ///////////
       default: //
          ENG_LOG_ERROR("Unsupported texture format");   

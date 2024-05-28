@@ -40,7 +40,7 @@ public: //
          // Texture attachments:      
          color_texture,
          depth_texture, 
-         depth_cube_texture,
+         depth_cube_texture, //add depth_cube_texture enum
 
          // Render buffer attachments:
          // color_buffer,   // Useless, not implemented

@@ -507,7 +507,8 @@ bool ENG_API Eng::Texture::create(uint32_t sizeX, uint32_t sizeY, Format format)
 	GLuint intFormat;
 	GLuint extFormat;
 	GLuint extType;
-   GLuint nrOfComponents;
+    GLuint nrOfComponents;
+    GLenum target_texture = GL_TEXTURE_2D; //This is the default texture target for all cases except depth_cube
 	switch (format)
 	{
       ///////////////////////
@@ -534,11 +535,13 @@ bool ENG_API Eng::Texture::create(uint32_t sizeX, uint32_t sizeY, Format format)
          nrOfComponents = 1;
          break;
 
+        /* Switch case for depth_cube texture format*/
       case Format::depth_cube:
-          intFormat = GL_DEPTH_COMPONENT32F;
+          intFormat = GL_DEPTH_COMPONENT32F; // Force 32F type for GL_DEPTH_COMPONENT
           extFormat = GL_DEPTH_COMPONENT;
           extType = GL_FLOAT;
-          nrOfComponents = 6;
+          nrOfComponents = 6; // 6-dimensions one for every cube side
+          target_texture = GL_TEXTURE_CUBE_MAP; // change target from default
           break;
 
 		///////////
@@ -552,13 +555,26 @@ bool ENG_API Eng::Texture::create(uint32_t sizeX, uint32_t sizeY, Format format)
 
 	// Create it:		    
    const GLuint oglId = this->getOglHandle();
-   glBindTexture(GL_TEXTURE_2D, oglId);   	      	
-   glTexImage2D(GL_TEXTURE_2D, 0, intFormat, sizeX, sizeY, 0, extFormat, extType, nullptr);         
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);   
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); 
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);   
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);     
+   glBindTexture(target_texture, oglId);
+
+   // Loop over all 6 faces if 
+   if (format == Format::depth_cube) {
+       for (uint_fast8_t i = 0; i < 6; i++) {
+           glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, intFormat, sizeX, sizeY, 0, extFormat, extType, nullptr);
+        }
+        glTexParameteri(target_texture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+   }
+   //Otherwise do as always
+   else {
+       glTexImage2D(target_texture, 0, intFormat, sizeX, sizeY, 0, extFormat, extType, nullptr);
+       glTexParameteri(target_texture, GL_TEXTURE_MAX_LEVEL, 0);
+   }
+
+   glTexParameteri(target_texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(target_texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(target_texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+   glTexParameteri(target_texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+   
    if (format == Format::depth)
    {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

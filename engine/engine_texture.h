@@ -58,7 +58,7 @@ public: //
 
       // Depth maps:
       depth,
-      depth_cube,
+      depth_cube, // Added depth_cube enum
 
       // Terminator:
       last
