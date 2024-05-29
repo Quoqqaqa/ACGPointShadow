@@ -234,7 +234,7 @@ bool ENG_API Eng::Program::build(std::initializer_list<std::reference_wrapper<En
    }
 
    // Validate possible configurations:
-   if (this->getNrOfShaders() >= 3)
+   if (this->getNrOfShaders() >= 4)
    {
       ENG_LOG_ERROR("Invalid/unsupported shader sequence");
       return false;

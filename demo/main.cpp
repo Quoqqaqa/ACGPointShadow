@@ -168,10 +168,8 @@ int main(int argc, char *argv[])
    light = dynamic_cast<Eng::Light &>(Eng::Container::getInstance().find("Omni001"));      
    light.get().setAmbient({ 0.3f, 0.3f, 0.3f });
    light.get().setColor({ 1.5f, 1.5f, 1.5f });
-   light.get().setProjMatrix(glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 1000.0f)); // Orthographic projection   
-   
-   glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
-
+   //light.get().setProjMatrix(glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 1000.0f)); // Orthographic projection   
+   light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f)));
 
    // Get torus knot ref:
    Eng::Mesh &tknot = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Torus Knot001"));   
@@ -208,7 +206,7 @@ int main(int argc, char *argv[])
       list.process(root);
       
       // Main rendering:
-      eng.clear();      
+      eng.clear();
          dfltPipe.render(camera, list);
 
          if (showShadowMap)

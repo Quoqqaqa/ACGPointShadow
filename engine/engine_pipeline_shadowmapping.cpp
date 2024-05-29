@@ -38,12 +38,46 @@ layout(location = 3) in vec4 a_tangent;
 
 // Uniforms:
 uniform mat4 modelviewMat;
-uniform mat4 projectionMat;
 
 void main()
 {   
-   gl_Position = projectionMat *  modelviewMat * vec4(a_vertex, 1.0f);
-})";
+   gl_Position = modelviewMat * vec4(a_vertex, 1.0f);
+}
+)";
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Geometry shader that connects the vertex to the fragment shader.
+ * It transforms the vertex from world space to 6 different light spaces.
+ */
+static const std::string pipeline_gs = R"(
+
+layout (triangles) in;
+layout (triangle_strip, max_vertices=18) out;
+
+uniform mat4 shadowMatrices[6];
+
+// FragPos from GS (output per emitvertex)
+out vec4 FragPos;
+
+void main()
+{
+    for(int face = 0; face < 6; ++face)
+    {
+        // built-in variable that specifies to which face we render.
+        gl_Layer = face;
+
+        // for each triangle vertex
+        for(int i = 0; i < 3; ++i)
+        {
+            FragPos = gl_in[i].gl_Position;
+            gl_Position = shadowMatrices[face] * FragPos;
+            EmitVertex();
+        }    
+        EndPrimitive();
+    }
+}  
+)";
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,9 +86,23 @@ void main()
  */
 static const std::string pipeline_fs = R"(
 
+in vec4 FragPos;
+
+uniform vec3 lightPos;
+uniform float far_plane;
+
 void main()
 {
-})";
+    // get distance between fragment and light source
+    float lightDistance = length(FragPos.xyz - lightPos);
+    
+    // map to [0;1] range by dividing by far_plane
+    lightDistance = lightDistance / far_plane;
+    
+    // write this as modified depth
+    gl_FragDepth = lightDistance;
+}
+)";
 
 
 
@@ -68,6 +116,7 @@ void main()
 struct Eng::PipelineShadowMapping::Reserved
 {
     Eng::Shader vs;
+    Eng::Shader gs; // add geometry shader to the pipeline
     Eng::Shader fs;
     Eng::Program program;
     Eng::Texture depthMap;
@@ -158,8 +207,9 @@ bool ENG_API Eng::PipelineShadowMapping::init()
 
     // Build:
     reserved->vs.load(Eng::Shader::Type::vertex, pipeline_vs);
+    reserved->gs.load(Eng::Shader::Type::geometry, pipeline_gs);
     reserved->fs.load(Eng::Shader::Type::fragment, pipeline_fs);
-    if (reserved->program.build({ reserved->vs, reserved->fs }) == false)
+    if (reserved->program.build({ reserved->vs, reserved->gs, reserved->fs }) == false)
     {
         ENG_LOG_ERROR("Unable to build shadow mapping program");
         return false;
@@ -231,6 +281,25 @@ bool ENG_API Eng::PipelineShadowMapping::render(const glm::mat4& camera, const g
     // Just to update the cache
     this->Eng::Pipeline::render(glm::mat4(1.0f), glm::mat4(1.0f), list);
 
+    // Create a projection matrix for the light source with a FOV of 90:
+    Eng::Base& eng = Eng::Base::getInstance();
+    float nearPlane = 1.0f;
+    float farPlane = 1000.0f;
+    float aspectRatio = eng.getWindowSize().x / (float)eng.getWindowSize().y;
+    glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), aspectRatio, nearPlane, farPlane);
+
+    // Get light position
+    glm::vec3 lightPosition = glm::vec3(camera[3]);
+
+    // Create transformation matrices used for generating the depth cubemap:
+    std::vector<glm::mat4> shadowTransforms;
+    shadowTransforms.push_back(lightProj * glm::lookAt(lightPosition, lightPosition + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+    shadowTransforms.push_back(lightProj * glm::lookAt(lightPosition, lightPosition + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+    shadowTransforms.push_back(lightProj * glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+    shadowTransforms.push_back(lightProj * glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)));
+    shadowTransforms.push_back(lightProj * glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+    shadowTransforms.push_back(lightProj * glm::lookAt(lightPosition, lightPosition + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+
     // Apply program:
     Eng::Program& program = getProgram();
     if (program == Eng::Program::empty)
@@ -238,8 +307,14 @@ bool ENG_API Eng::PipelineShadowMapping::render(const glm::mat4& camera, const g
         ENG_LOG_ERROR("Invalid program");
         return false;
     }
+
     program.render();
-    program.setMat4("projectionMat", proj);
+    // Loads the 6 shadow matrices into the shader
+    for (unsigned int i = 0; i < 6; ++i) {
+        program.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+    }
+    program.setFloat("far_plane", farPlane);
+    program.setVec3("lightPos", lightPosition);
 
     // Bind FBO and change OpenGL settings:
     reserved->fbo.render();
@@ -256,7 +331,6 @@ bool ENG_API Eng::PipelineShadowMapping::render(const glm::mat4& camera, const g
     glDisable(GL_CULL_FACE);
     glColorMask(1, 1, 1, 1);
 
-    Eng::Base& eng = Eng::Base::getInstance();
     Eng::Fbo::reset(eng.getWindowSize().x, eng.getWindowSize().y);
 
     // Done:   
