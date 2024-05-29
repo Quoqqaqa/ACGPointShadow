@@ -200,6 +200,15 @@ int main(int argc, char *argv[])
 
       // Animate torus knot:      
       tknot.setMatrix(glm::rotate(tknot.getMatrix(), glm::radians(15.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
+
+      // Rotate light:
+      //light.get().setMatrix(glm::rotate(light.get().getMatrix(), glm::radians(15.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
+      // Translate light:
+      //light.get().setMatrix(glm::translate(light.get().getMatrix(), glm::vec3(0.0f, 0.001f, 0.0f)));
+
+      // Place sphere at light position:
+      //Eng::Mesh& sphere = dynamic_cast<Eng::Mesh&>(Eng::Container::getInstance().find("Sphere001"));
+      //sphere.setMatrix(light.get().getMatrix());
       
       // Update list:
       list.reset();

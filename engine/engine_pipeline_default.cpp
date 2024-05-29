@@ -44,6 +44,7 @@ uniform mat4 lightMatrix;
 
 // Varying:
 out vec4 fragPosition;
+out vec4 fragPositionLightSpace;
 out vec3 normal;
 out vec2 uv;
 
@@ -53,6 +54,7 @@ void main()
    uv = a_uv;
 
    fragPosition = modelviewMat * vec4(a_vertex, 1.0f);
+   fragPositionLightSpace = lightMatrix * fragPosition;
    gl_Position = projectionMat * fragPosition;
 })";
 
@@ -69,13 +71,13 @@ static const std::string pipeline_fs = R"(
    layout (bindless_sampler) uniform sampler2D texture1; // Normal
    layout (bindless_sampler) uniform sampler2D texture2; // Roughness
    layout (bindless_sampler) uniform sampler2D texture3; // Metalness
-   layout (bindless_sampler) uniform sampler2D texture4; // Shadow map
+   layout (bindless_sampler) uniform samplerCube texture4; // Shadow map
 #else
    layout (binding = 0) uniform sampler2D texture0; // Albedo
    layout (binding = 1) uniform sampler2D texture1; // Normal
    layout (binding = 2) uniform sampler2D texture2; // Roughness
    layout (binding = 3) uniform sampler2D texture3; // Metalness
-   layout (binding = 4) uniform sampler2D texture4; // Shadow map
+   layout (binding = 4) uniform samplerCube texture4; // Shadow map
 #endif
 
 // Uniform (material):
@@ -90,52 +92,34 @@ uniform uint totNrOfLights;
 uniform vec3 lightColor;
 uniform vec3 lightAmbient;
 uniform vec3 lightPosition;
-uniform samplerCube depthMap;
 uniform float far_plane;
 
 // Varying:
 in vec4 fragPosition;
+in vec4 fragPositionLightSpace;
 in vec3 normal;
 in vec2 uv;
  
 // Output to the framebuffer:
 out vec4 outFragment;
 
+float closestDepth;
+float currentDepth;
 
 /**
  * Computes the amount of shadow for a given fragment.
  * @param fragPos 
  * @return shadow intensity
  */
-float shadowAmount(vec3 fragPos)
+float shadowAmount(vec4 fragPos)
 {
-  /* // From "clip" to "ndc" coords:
-   vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    
-   // Transform to the [0,1] range:
-   projCoords = projCoords * 0.5f + 0.5f;
-   
-   // Get closest depth in the shadow map:
-   float closestDepth = texture(texture4, projCoords.xy).r;    
-   
-   // Check whether current fragment is in shadow:
-   return projCoords.z > closestDepth ? 1.0f : 0.0f;   */
-
-
-
-   // get vector between fragment position and light position
-    vec3 fragToLight = fragPos - lightPosition;
-    // use the light to fragment vector to sample from the depth map    
-    float closestDepth = texture(depthMap, fragToLight).r;
-    // it is currently in linear range between [0,1]. Re-transform back to original value
-    closestDepth *= far_plane;
-    // now get current linear depth as the length between the fragment and light position
-    float currentDepth = length(fragToLight);
-    // now test for shadows
-    float bias = 0.05; 
-    float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
-
-    return shadow;
+   vec3 fragToLight = fragPos.xyz - lightPosition;
+   currentDepth = length(fragToLight);
+   closestDepth = texture(texture4, fragToLight).r;
+   //closestDepth = closestDepth * far_plane;   // This line should not be commented. However, commenting it actually shows some shadows if the content of closestDepth is shown
+   float bias = 0.05f;
+   float shadow = currentDepth - bias > closestDepth ? 0.0f : 1.0f;
+   return shadow;
 }  
 
 
@@ -150,8 +134,7 @@ void main()
    vec4 normal_texel = texture(texture1, uv);
    vec4 roughness_texel = mtlRoughness * texture(texture2, uv);
    vec4 metalness_texel = mtlMetalness * texture(texture3, uv);
-   float shadow_texel = texture(texture4, uv).r;
-   float justUseIt = albedo_texel.r + normal_texel.r + roughness_texel.r + metalness_texel.r + shadow_texel;
+   float justUseIt = albedo_texel.r + normal_texel.r + roughness_texel.r + metalness_texel.r;
 
    // Material props:
    justUseIt += mtlEmission.r + mtlAlbedo.r + mtlOpacity + mtlRoughness + mtlMetalness;
@@ -165,7 +148,7 @@ void main()
    // Light only front faces:
    if (dot(N, V) > 0.0f)
    {
-      float shadow = 1.0f - shadowAmount(fragPosition.xyz);     
+      float shadow = 1.0f - shadowAmount(fragPosition);    
       
       // Diffuse term:   
       float nDotL = max(0.0f, dot(N, L));      
@@ -178,6 +161,7 @@ void main()
    }
    
    outFragment = vec4((mtlEmission / float(totNrOfLights)) + fragColor * albedo_texel.xyz, justUseIt);
+//outFragment = vec4(vec3(closestDepth), 1.0f); // Debugging shadow map
 })";
 
 
@@ -391,7 +375,7 @@ bool ENG_API Eng::PipelineDefault::render(const glm::mat4 &camera, const glm::ma
       }
       
       // Render one light at time:
-      const Eng::List::RenderableElem &lightRe = list.getRenderableElem(l);     
+      const Eng::List::RenderableElem &lightRe = list.getRenderableElem(l);   
       const Eng::Light &light = dynamic_cast<const Eng::Light &>(lightRe.reference.get());
 
       // Render shadow map:
@@ -404,7 +388,6 @@ bool ENG_API Eng::PipelineDefault::render(const glm::mat4 &camera, const glm::ma
 
       lightFinalMatrix = light.getProjMatrix() * glm::inverse(lightRe.matrix) * glm::inverse(camera); // To convert from eye coords into light space    
       program.setMat4("lightMatrix", lightFinalMatrix);
-      program.setInt("depthMap", reserved->shadowMapping.getShadowMap().getId());
       program.setFloat("far_plane", 1000.0f);
       reserved->shadowMapping.getShadowMap().render(4);      
       

@@ -88,13 +88,13 @@ static const std::string pipeline_fs = R"(
 
 in vec4 FragPos;
 
-uniform vec3 lightPos;
+uniform vec3 lightPosition;
 uniform float far_plane;
 
 void main()
 {
     // get distance between fragment and light source
-    float lightDistance = length(FragPos.xyz - lightPos);
+    float lightDistance = length(FragPos.xyz - lightPosition);
     
     // map to [0;1] range by dividing by far_plane
     lightDistance = lightDistance / far_plane;
@@ -285,7 +285,7 @@ bool ENG_API Eng::PipelineShadowMapping::render(const glm::mat4& camera, const g
     Eng::Base& eng = Eng::Base::getInstance();
     float nearPlane = 1.0f;
     float farPlane = 1000.0f;
-    float aspectRatio = eng.getWindowSize().x / (float)eng.getWindowSize().y;
+    float aspectRatio = 1;
     glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), aspectRatio, nearPlane, farPlane);
 
     // Get light position
@@ -314,7 +314,7 @@ bool ENG_API Eng::PipelineShadowMapping::render(const glm::mat4& camera, const g
         program.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
     }
     program.setFloat("far_plane", farPlane);
-    program.setVec3("lightPos", lightPosition);
+    //program.setVec3("lightPos", lightPosition);
 
     // Bind FBO and change OpenGL settings:
     reserved->fbo.render();
