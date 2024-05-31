@@ -284,7 +284,7 @@ bool ENG_API Eng::PipelineShadowMapping::render(const glm::mat4& camera, const g
     // Create a projection matrix for the light source with a FOV of 90:
     Eng::Base& eng = Eng::Base::getInstance();
     float nearPlane = 1.0f;
-    float farPlane = 1000.0f;
+    float farPlane = 125.0f;
     float aspectRatio = 1;
     glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), aspectRatio, nearPlane, farPlane);
 

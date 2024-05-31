@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Creates an exception for libs
+!/dependencies/glew/lib/x64/
+!/dependencies/glfw/lib/x64/

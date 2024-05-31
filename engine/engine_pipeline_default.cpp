@@ -116,7 +116,7 @@ float shadowAmount(vec4 fragPos)
    vec3 fragToLight = fragPos.xyz - lightPosition;
    currentDepth = length(fragToLight);
    closestDepth = texture(texture4, fragToLight).r;
-   //closestDepth = closestDepth * far_plane;   // This line should not be commented. However, commenting it actually shows some shadows if the content of closestDepth is shown
+   closestDepth = closestDepth * far_plane;
    float bias = 0.05f;
    float shadow = currentDepth - bias > closestDepth ? 0.0f : 1.0f;
    return shadow;
@@ -161,7 +161,7 @@ void main()
    }
    
    outFragment = vec4((mtlEmission / float(totNrOfLights)) + fragColor * albedo_texel.xyz, justUseIt);
-//outFragment = vec4(vec3(closestDepth), 1.0f); // Debugging shadow map
+outFragment = vec4(vec3(closestDepth / far_plane), 1.0f); // Debugging shadow map
 })";
 
 
@@ -388,7 +388,7 @@ bool ENG_API Eng::PipelineDefault::render(const glm::mat4 &camera, const glm::ma
 
       lightFinalMatrix = light.getProjMatrix() * glm::inverse(lightRe.matrix) * glm::inverse(camera); // To convert from eye coords into light space    
       program.setMat4("lightMatrix", lightFinalMatrix);
-      program.setFloat("far_plane", 1000.0f);
+      program.setFloat("far_plane", 125.0f);
       reserved->shadowMapping.getShadowMap().render(4);      
       
       // Render meshes:
