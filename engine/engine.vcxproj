@@ -111,6 +111,7 @@
     <ClCompile Include="engine_pipeline_default.cpp" />
     <ClCompile Include="engine_pipeline_fullscreen2d.cpp" />
     <ClCompile Include="engine_pipeline_shadowmapping.cpp" />
+    <ClCompile Include="engine_pipeline_skybox.cpp" />
     <ClCompile Include="engine_program.cpp" />
     <ClCompile Include="engine_serializer.cpp" />
     <ClCompile Include="engine_shader.cpp" />
@@ -138,6 +139,7 @@
     <ClInclude Include="engine_pipeline_default.h" />
     <ClInclude Include="engine_pipeline_fullscreen2d.h" />
     <ClInclude Include="engine_pipeline_shadowmapping.h" />
+    <ClInclude Include="engine_pipeline_skybox.h" />
     <ClInclude Include="engine_program.h" />
     <ClInclude Include="engine_serializer.h" />
     <ClInclude Include="engine_shader.h" />

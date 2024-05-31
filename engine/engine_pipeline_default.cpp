@@ -92,6 +92,8 @@ uniform uint totNrOfLights;
 uniform vec3 lightColor;
 uniform vec3 lightAmbient;
 uniform vec3 lightPosition;
+
+// Uniform (camera):
 uniform float far_plane;
 
 // Varying:
@@ -108,12 +110,12 @@ float currentDepth;
 
 /**
  * Computes the amount of shadow for a given fragment.
- * @param fragPos 
+ * @param fragPosLightSpace frament coords in light space
  * @return shadow intensity
  */
-float shadowAmount(vec4 fragPos)
+float shadowAmount(vec4 fragPosLightSpace)
 {
-   vec3 fragToLight = fragPos.xyz - lightPosition;
+   vec3 fragToLight = fragPosLightSpace.xyz - lightPosition;
    currentDepth = length(fragToLight);
    closestDepth = texture(texture4, fragToLight).r;
    closestDepth = closestDepth * far_plane;
@@ -148,7 +150,7 @@ void main()
    // Light only front faces:
    if (dot(N, V) > 0.0f)
    {
-      float shadow = 1.0f - shadowAmount(fragPosition);    
+      float shadow = 1.0f - shadowAmount(fragPositionLightSpace);    
       
       // Diffuse term:   
       float nDotL = max(0.0f, dot(N, L));      

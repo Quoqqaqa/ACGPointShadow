@@ -31,7 +31,7 @@
 static const std::string pipeline_vs = R"(
 
 // Out:
-out vec2 texCoord;
+out vec3 texCoord;
 
 
 void main()
@@ -41,6 +41,7 @@ void main()
    
    texCoord.x = (x + 1.0f) * 0.5f;
    texCoord.y = (y + 1.0f) * 0.5f;
+   texCoord.z = 1.0f;
    
    gl_Position = vec4(x, y, 1.0f, 1.0f);
 })";
@@ -54,13 +55,13 @@ static const std::string pipeline_fs = R"(
    
 // Uniform:
 #ifdef ENG_BINDLESS_SUPPORTED
-   layout (bindless_sampler) uniform sampler2D texture0;
+   layout (bindless_sampler) uniform samplerCube texture0;
 #else
-   layout (binding = 0) uniform sampler2D texture0;    
+   layout (binding = 0) uniform samplerCube texture0;    
 #endif
 
 // In:   
-in vec2 texCoord;
+in vec3 texCoord;
    
 // Out:
 out vec4 outFragment;

@@ -105,6 +105,7 @@ namespace Eng {
    #include "engine_pipeline.h"
    #include "engine_pipeline_shadowmapping.h"
    #include "engine_pipeline_fullscreen2d.h"
+   #include "engine_pipeline_skybox.h"   
    #include "engine_pipeline_default.h"
    
 

@@ -37,6 +37,7 @@
    // Pipelines:
    Eng::PipelineDefault dfltPipe;
    Eng::PipelineFullscreen2D full2dPipe;
+   //Eng::PipelineSkybox skyboxPipe;
 
    // Flags:
    bool showShadowMap = false;
@@ -171,6 +172,12 @@ int main(int argc, char *argv[])
    //light.get().setProjMatrix(glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 1000.0f)); // Orthographic projection   
    light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f)));
 
+   float nearPlane = 1.0f;
+   float farPlane = 125.0f;
+   float aspectRatio = 1;
+   glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), aspectRatio, nearPlane, farPlane);
+   light.get().setProjMatrix(lightProj);
+
    // Get torus knot ref:
    Eng::Mesh &tknot = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Torus Knot001"));   
 
@@ -221,7 +228,8 @@ int main(int argc, char *argv[])
          if (showShadowMap)
          {            
             eng.clear();      
-            full2dPipe.render(dfltPipe.getShadowMappingPipeline().getShadowMap(), list);
+            //full2dPipe.render(dfltPipe.getShadowMappingPipeline().getShadowMap(), list);
+            //skyboxPipe.render(dfltPipe.getShadowMappingPipeline().getShadowMap(), list);
          }
       eng.swap();    
 
