@@ -7,7 +7,8 @@ public:
 	PipelineSkybox(PipelineSkybox const&) = delete;
 	~PipelineSkybox();
 
-	bool render(const Eng::Texture& texture, const Eng::List& list);
+	bool render(const Eng::Texture& texture, const Eng::List& list, const Eng::Camera& camera);
+	void renderCube();
 
 	bool init() override;
 	bool free() override;

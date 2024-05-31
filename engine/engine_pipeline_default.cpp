@@ -96,6 +96,9 @@ uniform vec3 lightPosition;
 // Uniform (camera):
 uniform float far_plane;
 
+// Uniform (flags):
+uniform int depthBuffer;
+
 // Varying:
 in vec4 fragPosition;
 in vec4 fragPositionLightSpace;
@@ -150,7 +153,8 @@ void main()
    // Light only front faces:
    if (dot(N, V) > 0.0f)
    {
-      float shadow = 1.0f - shadowAmount(fragPositionLightSpace);    
+      float shadow = 1.0f - shadowAmount(fragPositionLightSpace);  
+shadow = 1;  
       
       // Diffuse term:   
       float nDotL = max(0.0f, dot(N, L));      
@@ -163,7 +167,9 @@ void main()
    }
    
    outFragment = vec4((mtlEmission / float(totNrOfLights)) + fragColor * albedo_texel.xyz, justUseIt);
-outFragment = vec4(vec3(closestDepth / far_plane), 1.0f); // Debugging shadow map
+   if(depthBuffer == 1) {
+      outFragment = vec4(vec3(closestDepth / far_plane), 1.0f); // Debugging shadow map
+   }
 })";
 
 
@@ -182,6 +188,7 @@ struct Eng::PipelineDefault::Reserved
    Eng::Program program;
    
    bool wireframe;
+   bool depthBuffer;
 
    PipelineShadowMapping shadowMapping;
 
@@ -189,7 +196,7 @@ struct Eng::PipelineDefault::Reserved
    /**
     * Constructor. 
     */
-   Reserved() : wireframe{ false }
+   Reserved() : wireframe{ false }, depthBuffer { false }
    {}
 };
 
@@ -320,6 +327,26 @@ void ENG_API Eng::PipelineDefault::setWireframe(bool flag)
    reserved->wireframe = flag;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Gets the status of the depth buffer status.
+ * @return depth buffer status
+ */
+bool ENG_API Eng::PipelineDefault::isDepthBuffer() const
+{
+    return reserved->depthBuffer;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Sets the status of the depth buffer flag.
+ * @param flag depth buffer flag
+ */
+void ENG_API Eng::PipelineDefault::setDepthBuffer(bool flag)
+{
+    reserved->depthBuffer = flag;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -391,6 +418,8 @@ bool ENG_API Eng::PipelineDefault::render(const glm::mat4 &camera, const glm::ma
       lightFinalMatrix = light.getProjMatrix() * glm::inverse(lightRe.matrix) * glm::inverse(camera); // To convert from eye coords into light space    
       program.setMat4("lightMatrix", lightFinalMatrix);
       program.setFloat("far_plane", 125.0f);
+      int db = isDepthBuffer() ? 1 : 0;
+      program.setInt("depthBuffer", db);
       reserved->shadowMapping.getShadowMap().render(4);      
       
       // Render meshes:

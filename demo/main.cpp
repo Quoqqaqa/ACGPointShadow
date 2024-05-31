@@ -37,7 +37,7 @@
    // Pipelines:
    Eng::PipelineDefault dfltPipe;
    Eng::PipelineFullscreen2D full2dPipe;
-   //Eng::PipelineSkybox skyboxPipe;
+   Eng::PipelineSkybox skyboxPipe;
 
    // Flags:
    bool showShadowMap = false;
@@ -118,15 +118,11 @@ void keyboardCallback(int key, int scancode, int action, int mods)
    {
       case 'W': if (action == 0) dfltPipe.setWireframe(!dfltPipe.isWireframe()); break;         
       case 'S': if (action == 0) showShadowMap = !showShadowMap; break;
-      case 'P': if (action == 0)
-                {
-                   perspectiveProj = !perspectiveProj;
-                   if (perspectiveProj)
-                      light.get().setProjMatrix(glm::perspective(glm::radians(75.0f), 1.0f, 1.0f, 1000.0f));    // Perspective projection                     
-                   else
-                      light.get().setProjMatrix(glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 1000.0f));   // Orthographic projection
-                }
-                break;
+      case 'D': if (action == 0) dfltPipe.setDepthBuffer(!dfltPipe.isDepthBuffer()); break;
+      case 'I': if (action == 0) light.get().setMatrix(glm::translate(light.get().getMatrix(), glm::vec3(0.0f, 1.0f, 0.0f))); break;
+      case 'K': if (action == 0) light.get().setMatrix(glm::translate(light.get().getMatrix(), glm::vec3(0.0f, -1.0f, 0.0f))); break;
+      case 'J': if (action == 0) light.get().setMatrix(glm::translate(light.get().getMatrix(), glm::vec3(1.0f, 0.0f, 0.0f))); break;
+      case 'L': if (action == 0) light.get().setMatrix(glm::translate(light.get().getMatrix(), glm::vec3(-1.0f, 0.0f, 0.0f))); break;
    }
 }
 
@@ -229,7 +225,7 @@ int main(int argc, char *argv[])
          {            
             eng.clear();      
             //full2dPipe.render(dfltPipe.getShadowMappingPipeline().getShadowMap(), list);
-            //skyboxPipe.render(dfltPipe.getShadowMappingPipeline().getShadowMap(), list);
+            skyboxPipe.render(dfltPipe.getShadowMappingPipeline().getShadowMap(), list, camera);
          }
       eng.swap();    
 

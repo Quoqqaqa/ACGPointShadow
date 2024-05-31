@@ -26,7 +26,9 @@ public: //
    // Get/set:
    const Eng::PipelineShadowMapping &getShadowMappingPipeline() const;
    void setWireframe(bool flag);
+   void setDepthBuffer(bool flag);
    bool isWireframe() const;
+   bool isDepthBuffer() const;
 
    // Rendering methods:     
    bool render(const Eng::Camera &camera, const Eng::List &list) override;

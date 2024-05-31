@@ -9,12 +9,13 @@ static const std::string pipeline_vs = R"(
     out vec3 TexCoords;
 
     uniform mat4 projection;
-    uniform mat4 view;
+    uniform mat4 model;
+    uniform mat4 modelview;
 
     void main()
     {
         TexCoords = aPos;  
-        vec4 pos = projection * view * vec4(aPos, 1.0);
+        vec4 pos = projection * modelview * model * vec4(aPos, 1.0);
         gl_Position = pos.xyww;
     }
 )";
@@ -37,9 +38,9 @@ struct Eng::PipelineSkybox::Reserved
     Eng::Shader vs;
     Eng::Shader fs;
     Eng::Program program;
-    Eng::Vao vao;
-    Eng::Vbo vbo;
-    Eng::Ebo ebo;
+
+    unsigned int skyboxVAO;
+    unsigned int skyboxVBO;
 
 
     /**
@@ -89,6 +90,7 @@ bool ENG_API Eng::PipelineSkybox::init() {
         return false;
     }
     this->setProgram(reserved->program);
+    reserved->program.setMat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(100.0f)));
 
     float skyboxVertices[] = {
         -1.0f,  1.0f, -1.0f,
@@ -155,11 +157,14 @@ bool ENG_API Eng::PipelineSkybox::init() {
         22, 23, 20
     };
 
-    reserved->vao.init();
-    reserved->vao.render();
-
-    reserved->vbo.create(36, skyboxVertices);
-    reserved->ebo.create(12, skyboxIndices);
+    glGenVertexArrays(1, &reserved->skyboxVAO);
+    glGenBuffers(1, &reserved->skyboxVBO);
+    glBindVertexArray(reserved->skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, reserved->skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glBindVertexArray(0);
 
     this->setDirty(false);
     return true;
@@ -173,7 +178,13 @@ bool ENG_API Eng::PipelineSkybox::free() {
     return true;
 }
 
-bool ENG_API Eng::PipelineSkybox::render(const Eng::Texture& texture, const Eng::List& list) {
+void ENG_API Eng::PipelineSkybox::renderCube() {
+    glBindVertexArray(reserved->skyboxVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+}
+
+bool ENG_API Eng::PipelineSkybox::render(const Eng::Texture& texture, const Eng::List& list, const Eng::Camera& camera) {
     // Safety net:
     if (texture == Eng::Texture::empty || list == Eng::List::empty)
     {
@@ -202,11 +213,13 @@ bool ENG_API Eng::PipelineSkybox::render(const Eng::Texture& texture, const Eng:
     program.render();
     texture.render(0);
 
-    Eng::Base& eng = Eng::Base::getInstance();
-    Eng::Fbo::reset(eng.getWindowSize().x, eng.getWindowSize().y);
- 
-    reserved->vao.render();
-    glDrawElements(GL_TRIANGLES, reserved->ebo.getNrOfFaces() * 3, GL_UNSIGNED_INT, nullptr);
+    //std::cout << "Proj: " << glm::to_string(camera.getProjMatrix()) << std::endl;
+    //std::cout << "Model: " << glm::to_string(camera.getWorldMatrix()) << std::endl;
+
+    program.setMat4("projection", camera.getProjMatrix());
+    program.setMat4("modelview", glm::inverse(camera.getWorldMatrix()));
+
+    renderCube();
 
     return true;
 }
