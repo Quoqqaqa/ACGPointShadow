@@ -10,6 +10,8 @@ public:
 	bool render(const Eng::Texture& texture, const Eng::List& list, const Eng::Camera& camera);
 	void renderCube();
 
+	void incr_pfc_radius(float val);
+
 	bool init() override;
 	bool free() override;
 
@@ -18,4 +20,5 @@ private:
 	std::unique_ptr<Reserved> reserved;
 
 	PipelineSkybox(const std::string& name);
+	
 };

@@ -27,6 +27,8 @@ public: //
    const Eng::PipelineShadowMapping &getShadowMappingPipeline() const;
    void setWireframe(bool flag);
    void setDepthBuffer(bool flag);
+   void incr_bias(float val);
+   void incr_pfc_radius(float val);
    bool isWireframe() const;
    bool isDepthBuffer() const;
 

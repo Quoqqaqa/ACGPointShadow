@@ -6,11 +6,11 @@
 static const std::string pipeline_vs = R"(
     layout (location = 0) in vec3 aPos;
 
-    out vec3 TexCoords;
+    out vec3 TexCoords; 
 
     uniform mat4 projection;
     uniform mat4 model;
-    uniform mat4 modelview;
+    uniform mat4 modelview; 
 
     void main()
     {
@@ -24,12 +24,30 @@ static const std::string pipeline_fs = R"(
     out vec4 FragColor;
 
     in vec3 TexCoords;
-
+    
     uniform samplerCube skybox;
+    uniform float pfc_radius_scale_factor;
 
+    vec3 gridSamplingDisk[20] = vec3[]
+(
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
+
+    int samples = 20;
+    float far_plane = 125.0;
+    
+    float diskRadius = 0.3/pfc_radius_scale_factor;
+    
     void main()
     {    
-        FragColor = texture(skybox, TexCoords);
+        for(int i = 0; i < samples; ++i) {
+            FragColor += texture(skybox, TexCoords+gridSamplingDisk[i] * diskRadius);
+        }
+        FragColor /= samples;
     }
 )";
 
@@ -41,13 +59,13 @@ struct Eng::PipelineSkybox::Reserved
 
     unsigned int skyboxVAO;
     unsigned int skyboxVBO;
-
+    float pfc_radius_scale_factor;
 
     /**
      * Constructor.
      */
-    Reserved()
-    {}
+    //Reserved() :{}
+    
 };
 
 ENG_API Eng::PipelineSkybox::PipelineSkybox(): reserved(std::make_unique<Eng::PipelineSkybox::Reserved>())
@@ -74,6 +92,12 @@ ENG_API Eng::PipelineSkybox::~PipelineSkybox()
         free();
 }
 
+void ENG_API Eng::PipelineSkybox::incr_pfc_radius(float val)
+{
+    reserved->pfc_radius_scale_factor = (float)std::fmax(1.0f, reserved->pfc_radius_scale_factor + val);
+    reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
+}
+
 bool ENG_API Eng::PipelineSkybox::init() {
     // Already initialized?
     if (this->Eng::Managed::init() == false)
@@ -91,6 +115,10 @@ bool ENG_API Eng::PipelineSkybox::init() {
     }
     this->setProgram(reserved->program);
     reserved->program.setMat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(100.0f)));
+
+    reserved->pfc_radius_scale_factor = 20.0f;
+    reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
+    
 
     float skyboxVertices[] = {
         -1.0f,  1.0f, -1.0f,
@@ -166,6 +194,7 @@ bool ENG_API Eng::PipelineSkybox::init() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glBindVertexArray(0);
 
+
     this->setDirty(false);
     return true;
 }
@@ -218,6 +247,10 @@ bool ENG_API Eng::PipelineSkybox::render(const Eng::Texture& texture, const Eng:
 
     program.setMat4("projection", camera.getProjMatrix());
     program.setMat4("modelview", glm::inverse(camera.getWorldMatrix()));
+
+    
+
+    //std::cout << glm::to_string(g) << std::endl;
 
     renderCube();
 

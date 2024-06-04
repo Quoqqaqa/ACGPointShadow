@@ -61,6 +61,8 @@ uniform mat4 shadowMatrices[6];
 // FragPos from GS (output per emitvertex)
 out vec4 FragPos;
 
+
+
 void main()
 {
     for(int face = 0; face < 6; ++face)
@@ -313,6 +315,7 @@ bool ENG_API Eng::PipelineShadowMapping::render(const glm::mat4& camera, const g
 
     program.render();
     program.setMat4("lightInv", camera);
+    
     // Loads the 6 shadow matrices into the shader
     for (unsigned int i = 0; i < 6; ++i) {
         program.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);

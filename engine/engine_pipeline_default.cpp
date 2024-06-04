@@ -74,13 +74,13 @@ static const std::string pipeline_fs = R"(
    layout (bindless_sampler) uniform sampler2D texture1; // Normal
    layout (bindless_sampler) uniform sampler2D texture2; // Roughness
    layout (bindless_sampler) uniform sampler2D texture3; // Metalness
-   layout (bindless_sampler) uniform samplerCube texture4; // Shadow map
+   layout (bindless_sampler) uniform samplerCube depthMap; // Shadow map
 #else
    layout (binding = 0) uniform sampler2D texture0; // Albedo
    layout (binding = 1) uniform sampler2D texture1; // Normal
    layout (binding = 2) uniform sampler2D texture2; // Roughness
    layout (binding = 3) uniform sampler2D texture3; // Metalness
-   layout (binding = 4) uniform samplerCube texture4; // Shadow map
+   layout (binding = 4) uniform samplerCube depthMap; // Shadow map
 #endif
 
 // Uniform (material):
@@ -89,6 +89,8 @@ uniform vec3 mtlAlbedo;
 uniform float mtlOpacity;
 uniform float mtlRoughness;
 uniform float mtlMetalness;
+uniform float acne_bias;
+uniform float pfc_radius_scale_factor;
 
 // Uniform (light):
 uniform uint totNrOfLights;
@@ -98,6 +100,7 @@ uniform vec3 lightPosition;
 
 // Uniform (camera):
 uniform float far_plane;
+uniform vec3 viewPos;
 
 // Uniform (flags):
 uniform int depthBuffer;
@@ -108,11 +111,21 @@ in vec4 fragPositionLightSpace;
 in vec3 normal;
 in vec2 uv;
 in vec3 _fragPos;
+
  
 // Output to the framebuffer:
 out vec4 outFragment;
 
 float closestDepth;
+
+vec3 gridSamplingDisk[20] = vec3[]
+(
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
 
 /**
  * Computes the amount of shadow for a given fragment.
@@ -121,15 +134,41 @@ float closestDepth;
  */
 float shadowAmount(vec3 fragPos)
 {
+   /*
    vec3 lightPos = lightPosition.xyz;
    vec3 fragToLight = fragPos - lightPos;
 
-   closestDepth = texture(texture4, fragToLight).r;
+   closestDepth = texture(depthMap, fragToLight).r;
    closestDepth = closestDepth * far_plane;
    float currentDepth = length(fragToLight);
 
    float bias = 0.3f;
    return currentDepth - bias > closestDepth ? 1.0f : 0.0f;
+   */
+
+
+    
+    vec3 lightPos = lightPosition.xyz;
+    vec3 fragToLight = fragPos - lightPos;
+    
+    float currentDepth = length(fragToLight);
+    float shadow = 0.0;
+    int samples = 20;
+    float viewDistance = length(viewPos - fragPos);
+    float diskRadius = (1.0 + (viewDistance / far_plane)) / pfc_radius_scale_factor;
+    for(int i = 0; i < samples; ++i)
+    {
+        float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+        closestDepth *= far_plane;   // undo mapping [0;1]
+        if(currentDepth - acne_bias > closestDepth)
+            shadow += 1.0;
+    }
+    shadow /= float(samples);
+        
+    // display closestDepth as debug (to visualize depth cubemap)
+    // FragColor = vec4(vec3(closestDepth / far_plane), 1.0);    
+       
+    return shadow;
 }  
 
 
@@ -193,6 +232,8 @@ struct Eng::PipelineDefault::Reserved
    
    bool wireframe;
    bool depthBuffer;
+   float acne_bias;
+   float pfc_radius_scale_factor;
 
    PipelineShadowMapping shadowMapping;
 
@@ -200,7 +241,7 @@ struct Eng::PipelineDefault::Reserved
    /**
     * Constructor. 
     */
-   Reserved() : wireframe{ false }, depthBuffer { false }
+   Reserved() : wireframe{ false }, depthBuffer{ false }, acne_bias{ 0.3f }, pfc_radius_scale_factor{ 16.0f }
    {}
 };
 
@@ -271,6 +312,7 @@ bool ENG_API Eng::PipelineDefault::init()
    // Build:
    reserved->vs.load(Eng::Shader::Type::vertex, pipeline_vs);
    reserved->fs.load(Eng::Shader::Type::fragment, pipeline_fs);   
+
    if (reserved->program.build({ reserved->vs, reserved->fs }) == false)
    {
       ENG_LOG_ERROR("Unable to build default program");
@@ -278,6 +320,8 @@ bool ENG_API Eng::PipelineDefault::init()
    }
    this->setProgram(reserved->program);
 
+   reserved->program.setFloat("acne_bias", reserved->acne_bias);
+   reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
    // Done: 
    this->setDirty(false);
    return true;
@@ -333,6 +377,30 @@ void ENG_API Eng::PipelineDefault::setWireframe(bool flag)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
+ * increments the bias to counteract acne
+ * @param flag acne bias incr
+ */
+void ENG_API Eng::PipelineDefault::incr_bias(float val)
+{
+    reserved->acne_bias = (float)std::fmax(0, reserved->acne_bias+val);
+    reserved->program.setFloat("acne_bias", reserved->acne_bias);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * increments the pfc radius
+ * @param flag scale factor of the pcf radius incr
+ */
+
+void ENG_API Eng::PipelineDefault::incr_pfc_radius(float val)
+{
+    reserved->pfc_radius_scale_factor = (float)std::fmax(1.0f, reserved->pfc_radius_scale_factor + val);
+    reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
+   
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
  * Gets the status of the depth buffer status.
  * @return depth buffer status
  */
@@ -360,7 +428,7 @@ void ENG_API Eng::PipelineDefault::setDepthBuffer(bool flag)
  * @param list list of renderables
  * @return TF
  */
-bool ENG_API Eng::PipelineDefault::render(const glm::mat4 &camera, const glm::mat4 &proj, const Eng::List &list)
+bool ENG_API Eng::PipelineDefault::render(const glm::mat4& camera, const glm::mat4& proj, const Eng::List& list)
 {	
    // Safety net:
    if (list == Eng::List::empty)
@@ -389,6 +457,8 @@ bool ENG_API Eng::PipelineDefault::render(const glm::mat4 &camera, const glm::ma
    }   
    program.render();   
    program.setMat4("projectionMat", proj);   
+   program.setVec3("viewPos", camera[3]);
+ 
    
    // Wireframe is on?
    if (isWireframe())
