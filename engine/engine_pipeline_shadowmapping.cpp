@@ -38,10 +38,11 @@ layout(location = 3) in vec4 a_tangent;
 
 // Uniforms:
 uniform mat4 modelviewMat;
+uniform mat4 lightInv;
 
 void main()
 {   
-   gl_Position = modelviewMat * vec4(a_vertex, 1.0f);
+   gl_Position = lightInv * modelviewMat * vec4(a_vertex, 1.0f);
 }
 )";
 
@@ -86,22 +87,23 @@ void main()
  */
 static const std::string pipeline_fs = R"(
 
-//in vec4 FragPos;
-//
-//uniform vec3 lightPosition;
-//uniform float far_plane;
-//
-//void main()
-//{
-//    // get distance between fragment and light source
-//    float lightDistance = length(FragPos.xyz - lightPosition);
-//    
-//    // map to [0;1] range by dividing by far_plane
-//    lightDistance = lightDistance / far_plane;
-//    
-//    // write this as modified depth
-//    gl_FragDepth = lightDistance;
-//}
+in vec4 FragPos;
+
+uniform vec3 lightPosition;
+uniform float far_plane;
+uniform mat4 lightInv;
+
+void main()
+{
+    // get distance between fragment and light source
+    float lightDistance = length(FragPos.xyz - (lightInv * vec4(lightPosition, 1.0f)).xyz);
+    
+    // map to [0;1] range by dividing by far_plane
+    lightDistance = lightDistance / far_plane;
+    
+    // write this as modified depth
+    gl_FragDepth = lightDistance;
+}
 )";
 
 
@@ -310,6 +312,7 @@ bool ENG_API Eng::PipelineShadowMapping::render(const glm::mat4& camera, const g
     }
 
     program.render();
+    program.setMat4("lightInv", camera);
     // Loads the 6 shadow matrices into the shader
     for (unsigned int i = 0; i < 6; ++i) {
         program.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);

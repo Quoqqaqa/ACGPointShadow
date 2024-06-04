@@ -230,7 +230,8 @@ bool ENG_API Eng::Light::render(uint32_t value, void *data) const
    Eng::Program &program = dynamic_cast<Eng::Program &>(Eng::Program::getCached());
    program.setVec3("lightColor", reserved->color);   
    program.setVec3("lightAmbient", reserved->ambient);   
-   program.setVec3("lightPosition", glm::vec3((*((glm::mat4 *) data))[3]));
+   //program.setVec3("lightPosition", glm::vec3((*((glm::mat4 *) data))[3]));
+   program.setVec3("lightPosition", glm::vec3(this->getWorldMatrix()[3]));
    
    // Done:
    return true;

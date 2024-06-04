@@ -238,6 +238,7 @@ bool ENG_API Eng::Mesh::render(uint32_t value, void *data) const
 {	
    Eng::Program &program = dynamic_cast<Eng::Program &>(Eng::Program::getCached());
    program.setMat4("modelviewMat", *((glm::mat4 *) data));
+   program.setMat4("worldMat", this->getWorldMatrix());
    program.setMat3("normalMat", glm::inverseTranspose(glm::mat3(*((glm::mat4 *) data))));
 
    reserved->material.get().render();

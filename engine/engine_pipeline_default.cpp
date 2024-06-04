@@ -41,12 +41,14 @@ uniform mat4 modelviewMat;
 uniform mat4 projectionMat;
 uniform mat3 normalMat;
 uniform mat4 lightMatrix;
+uniform mat4 worldMat;
 
 // Varying:
 out vec4 fragPosition;
 out vec4 fragPositionLightSpace;
 out vec3 normal;
 out vec2 uv;
+out vec3 _fragPos;
 
 void main()
 {
@@ -55,6 +57,7 @@ void main()
 
    fragPosition = modelviewMat * vec4(a_vertex, 1.0f);
    fragPositionLightSpace = lightMatrix * fragPosition;
+   _fragPos = (worldMat * vec4(a_vertex, 1.0f)).xyz;
    gl_Position = projectionMat * fragPosition;
 })";
 
@@ -104,27 +107,29 @@ in vec4 fragPosition;
 in vec4 fragPositionLightSpace;
 in vec3 normal;
 in vec2 uv;
+in vec3 _fragPos;
  
 // Output to the framebuffer:
 out vec4 outFragment;
 
 float closestDepth;
-float currentDepth;
 
 /**
  * Computes the amount of shadow for a given fragment.
- * @param fragPosLightSpace frament coords in light space
+ * @param fragPos frament coords in world coordinates
  * @return shadow intensity
  */
-float shadowAmount(vec4 fragPosLightSpace)
+float shadowAmount(vec3 fragPos)
 {
-   vec3 fragToLight = fragPosLightSpace.xyz - lightPosition;
-   currentDepth = length(fragToLight);
+   vec3 lightPos = lightPosition.xyz;
+   vec3 fragToLight = fragPos - lightPos;
+
    closestDepth = texture(texture4, fragToLight).r;
    closestDepth = closestDepth * far_plane;
-   float bias = 0.05f;
-   float shadow = currentDepth - bias > closestDepth ? 0.0f : 1.0f;
-   return shadow;
+   float currentDepth = length(fragToLight);
+
+   float bias = 0.3f;
+   return currentDepth - bias > closestDepth ? 1.0f : 0.0f;
 }  
 
 
@@ -153,8 +158,7 @@ void main()
    // Light only front faces:
    if (dot(N, V) > 0.0f)
    {
-      float shadow = 1.0f - shadowAmount(fragPositionLightSpace);  
-shadow = 1;  
+      float shadow = 1.0f - shadowAmount(_fragPos);
       
       // Diffuse term:   
       float nDotL = max(0.0f, dot(N, L));      
@@ -415,7 +419,7 @@ bool ENG_API Eng::PipelineDefault::render(const glm::mat4 &camera, const glm::ma
       glm::mat4 lightFinalMatrix = camera * lightRe.matrix; // Light position in eye coords
       lightRe.reference.get().render(0, &lightFinalMatrix);
 
-      lightFinalMatrix = light.getProjMatrix() * glm::inverse(lightRe.matrix) * glm::inverse(camera); // To convert from eye coords into light space    
+      lightFinalMatrix = light.getProjMatrix() * glm::inverse(lightRe.matrix) * glm::inverse(camera); // To convert from eye coords into light space
       program.setMat4("lightMatrix", lightFinalMatrix);
       program.setFloat("far_plane", 125.0f);
       int db = isDepthBuffer() ? 1 : 0;

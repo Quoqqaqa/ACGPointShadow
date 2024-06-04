@@ -224,7 +224,7 @@ bool ENG_API Eng::List::render(const glm::mat4 &cameraMatrix, const glm::mat4 &p
    for (size_t c = startRange; c < endRange; c++)
    {      
       RenderableElem &re = reserved->renderableElem.at(c);
-      glm::mat4 finalMatrix = cameraMatrix * re.matrix;          
+      glm::mat4 finalMatrix = cameraMatrix * re.matrix; 
       re.reference.get().render(0, &finalMatrix);
    }
 
