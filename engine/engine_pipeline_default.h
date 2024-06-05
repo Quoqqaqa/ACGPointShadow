@@ -31,6 +31,8 @@ public: //
    void incr_pfc_radius(float val);
    bool isWireframe() const;
    bool isDepthBuffer() const;
+   void setFrontFaceCulling(bool flag);
+   bool isFrontFaceCulling() const;
 
    // Rendering methods:     
    bool render(const Eng::Camera &camera, const Eng::List &list) override;

@@ -18,7 +18,7 @@ public: //
 //////////
 
    // Special values:
-   constexpr static uint32_t depthTextureSize = 100;     ///< Size of the depth map
+   constexpr static uint32_t depthTextureSize = 2048;     ///< Size of the depth map
 
    
    // Const/dest:
@@ -29,6 +29,8 @@ public: //
 
    // Get/set:
    const Eng::Texture &getShadowMap() const;
+   void setFrontFaceCulling(bool flag);
+   bool isFrontFaceCulling() const;
 
    // Rendering methods:   
    bool render(const Eng::Camera &camera, const Eng::List &list) override;

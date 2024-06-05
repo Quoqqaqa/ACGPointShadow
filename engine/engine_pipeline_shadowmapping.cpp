@@ -125,6 +125,7 @@ struct Eng::PipelineShadowMapping::Reserved
     Eng::Program program;
     Eng::Texture depthMap;
     Eng::Fbo fbo;
+    bool frontFaceCulling = true;
 
 
     /**
@@ -193,6 +194,28 @@ ENG_API Eng::PipelineShadowMapping::~PipelineShadowMapping()
 const Eng::Texture ENG_API& Eng::PipelineShadowMapping::getShadowMap() const
 {
     return reserved->depthMap;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Sets the status of the front face culling flag.
+ * @param flag wireframe flag
+ */
+void ENG_API Eng::PipelineShadowMapping::setFrontFaceCulling(bool flag)
+{
+    reserved->frontFaceCulling = flag;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Gets the status of the front face culling flag.
+ * @return wireframe status
+ */
+bool ENG_API Eng::PipelineShadowMapping::isFrontFaceCulling() const
+{
+    return reserved->frontFaceCulling;
 }
 
 
@@ -327,15 +350,20 @@ bool ENG_API Eng::PipelineShadowMapping::render(const glm::mat4& camera, const g
     reserved->fbo.render();
     glClear(GL_DEPTH_BUFFER_BIT);
     glColorMask(0, 0, 0, 0);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    if (reserved->frontFaceCulling) {
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+	
+    }
 
     // Render meshes:   
     list.render(camera, proj, Eng::List::Pass::meshes);
 
     // Redo OpenGL settings:
-    glCullFace(GL_BACK);
-    glDisable(GL_CULL_FACE);
+    if (reserved->frontFaceCulling) {
+        glCullFace(GL_BACK);
+        glDisable(GL_CULL_FACE);
+    }
     glColorMask(1, 1, 1, 1);
 
     Eng::Fbo::reset(eng.getWindowSize().x, eng.getWindowSize().y);

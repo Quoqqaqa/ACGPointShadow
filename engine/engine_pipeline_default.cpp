@@ -134,20 +134,6 @@ vec3 gridSamplingDisk[20] = vec3[]
  */
 float shadowAmount(vec3 fragPos)
 {
-   /*
-   vec3 lightPos = lightPosition.xyz;
-   vec3 fragToLight = fragPos - lightPos;
-
-   closestDepth = texture(depthMap, fragToLight).r;
-   closestDepth = closestDepth * far_plane;
-   float currentDepth = length(fragToLight);
-
-   float bias = 0.3f;
-   return currentDepth - bias > closestDepth ? 1.0f : 0.0f;
-   */
-
-
-    
     vec3 lightPos = lightPosition.xyz;
     vec3 fragToLight = fragPos - lightPos;
     
@@ -158,7 +144,7 @@ float shadowAmount(vec3 fragPos)
     float diskRadius = (1.0 + (viewDistance / far_plane)) / pfc_radius_scale_factor;
     for(int i = 0; i < samples; ++i)
     {
-        float closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+        closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
         closestDepth *= far_plane;   // undo mapping [0;1]
         if(currentDepth - acne_bias > closestDepth)
             shadow += 1.0;
@@ -241,7 +227,7 @@ struct Eng::PipelineDefault::Reserved
    /**
     * Constructor. 
     */
-   Reserved() : wireframe{ false }, depthBuffer{ false }, acne_bias{ 0.3f }, pfc_radius_scale_factor{ 16.0f }
+   Reserved() : wireframe{ false }, depthBuffer{ false }, acne_bias{ 0.05f }, pfc_radius_scale_factor{ 16.0f }
    {}
 };
 
@@ -374,6 +360,29 @@ void ENG_API Eng::PipelineDefault::setWireframe(bool flag)
 {
    reserved->wireframe = flag;
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Sets the status of the front face culling flag.
+ * @param flag wireframe flag
+ */
+void ENG_API Eng::PipelineDefault::setFrontFaceCulling(bool flag)
+{
+    reserved->shadowMapping.setFrontFaceCulling(flag);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Gets the status of the front face culling flag.
+ * @return wireframe status
+ */
+bool ENG_API Eng::PipelineDefault::isFrontFaceCulling() const
+{
+    return reserved->shadowMapping.isFrontFaceCulling();
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**

@@ -124,10 +124,11 @@ void keyboardCallback(int key, int scancode, int action, int mods)
        case 'K': light.get().setMatrix(glm::translate(light.get().getMatrix(), glm::vec3(0.0f, -1.0f, 0.0f))); break;
        case 'J': light.get().setMatrix(glm::translate(light.get().getMatrix(), glm::vec3(1.0f, 0.0f, 0.0f))); break;
        case 'L': light.get().setMatrix(glm::translate(light.get().getMatrix(), glm::vec3(-1.0f, 0.0f, 0.0f))); break;
-       case 'C': dfltPipe.incr_bias(-0.2); break;
-       case 'V': dfltPipe.incr_bias(0.2); break;
+       case 'C': dfltPipe.incr_bias(-0.05); break;
+       case 'V': dfltPipe.incr_bias(0.05); break;
        case 'Y': dfltPipe.incr_pfc_radius(2.0f); skyboxPipe.incr_pfc_radius(2.0f); break;
        case 'X': dfltPipe.incr_pfc_radius(-2.0f); skyboxPipe.incr_pfc_radius(-2.0f);  break;
+       case ' ': dfltPipe.setFrontFaceCulling(!dfltPipe.isFrontFaceCulling()); break;
        }
    }
 }
