@@ -145,7 +145,7 @@ float shadowAmount(vec3 fragPos)
     for(int i = 0; i < samples; ++i)
     {
         closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
-        closestDepth *= far_plane;   // undo mapping [0;1]
+        closestDepth *= far_plane;   
         if(currentDepth - acne_bias > closestDepth)
             shadow += 1.0;
     }
@@ -393,6 +393,7 @@ void ENG_API Eng::PipelineDefault::incr_bias(float val)
 {
     reserved->acne_bias = (float)std::fmax(0, reserved->acne_bias+val);
     reserved->program.setFloat("acne_bias", reserved->acne_bias);
+    std::cout << "Bias = " << reserved->acne_bias << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

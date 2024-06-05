@@ -128,7 +128,7 @@ void keyboardCallback(int key, int scancode, int action, int mods)
        case 'V': dfltPipe.incr_bias(0.05); break;
        case 'Y': dfltPipe.incr_pfc_radius(2.0f); skyboxPipe.incr_pfc_radius(2.0f); break;
        case 'X': dfltPipe.incr_pfc_radius(-2.0f); skyboxPipe.incr_pfc_radius(-2.0f);  break;
-       case ' ': dfltPipe.setFrontFaceCulling(!dfltPipe.isFrontFaceCulling()); break;
+       case ' ': dfltPipe.setFrontFaceCulling(!dfltPipe.isFrontFaceCulling()); std::cout << dfltPipe.isFrontFaceCulling() << std::endl; break;
        }
    }
 }
