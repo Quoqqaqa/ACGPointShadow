@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
    /////////////////
    // Loading scene:   
    Eng::Ovo ovo; 
-   Eng::Node &root = ovo.load("simple3dScene.ovo");
+   Eng::Node &root = ovo.load("new.ovo");
    std::cout << "Scene graph:\n" << root.getTreeAsString() << std::endl;
    
    // Get light ref:
@@ -173,7 +173,17 @@ int main(int argc, char *argv[])
    light.get().setAmbient({ 0.3f, 0.3f, 0.3f });
    light.get().setColor({ 1.5f, 1.5f, 1.5f });
    //light.get().setProjMatrix(glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 1000.0f)); // Orthographic projection   
-   light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f)));
+   //light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f)));
+   light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(light.get().getMatrix()[3])));
+   std::cout << "Light position: " << glm::to_string(light.get().getMatrix()) << std::endl;
+
+   //std::reference_wrapper<Eng::Light> light2 = dynamic_cast<Eng::Light&>(Eng::Container::getInstance().find("Omni002"));
+   //light2.get().setAmbient({ 0.3f, 0.3f, 0.3f });
+   //light2.get().setColor({ 1.5f, 0.0f, 0.0f });
+   ////light.get().setProjMatrix(glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 1.0f, 1000.0f)); // Orthographic projection   
+   ////light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f)));
+   //light2.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(light2.get().getMatrix()[3])));
+   //std::cout << "Light position: " << glm::to_string(light2.get().getMatrix()) << std::endl;
 
    float nearPlane = 1.0f;
    float farPlane = 125.0f;
@@ -181,8 +191,9 @@ int main(int argc, char *argv[])
    glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), aspectRatio, nearPlane, farPlane);
    light.get().setProjMatrix(lightProj);
 
-   // Get torus knot ref:
-   Eng::Mesh &tknot = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Torus Knot001"));   
+   Eng::Mesh &hose = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hose001"));
+   Eng::Mesh &hedra = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hedra001"));
+   Eng::Mesh &chamfer = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("ChamferCyl001"));
 
    // Rendering elements:
    Eng::List list;      
@@ -190,7 +201,10 @@ int main(int argc, char *argv[])
    // Init camera:   
    camera.setProjMatrix(glm::perspective(glm::radians(45.0f), eng.getWindowSize().x / (float) eng.getWindowSize().y, 1.0f, 125.0f));
    // camera.setProjMatrix(glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 1.0f, 1000.0f));
-   camera.lookAt(root); // Look at the origin
+   Eng::Node cameraLookAt = Eng::Node();
+   cameraLookAt.setName("CameraLookAt");
+   cameraLookAt.setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(-25.0f, 12.5f, 0.0f)));
+   camera.lookAt(cameraLookAt);
 
   
    /////////////
@@ -206,10 +220,11 @@ int main(int argc, char *argv[])
       auto start = timer.now();
 
       // Update viewpoint:
-      camera.update();      
+      camera.update();   
 
-      // Animate torus knot:      
-      tknot.setMatrix(glm::rotate(tknot.getMatrix(), glm::radians(15.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
+      hose.setMatrix(glm::rotate(hose.getMatrix(), glm::radians(15.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
+      hedra.setMatrix(glm::rotate(hedra.getMatrix(), glm::radians(30.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
+      chamfer.setMatrix(glm::rotate(chamfer.getMatrix(), glm::radians(10.0f * fpsFactor), glm::vec3(10.0f, 0.0f, 1.0f)));
 
       // Rotate light:
       //light.get().setMatrix(glm::rotate(light.get().getMatrix(), glm::radians(15.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
