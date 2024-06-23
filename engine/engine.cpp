@@ -47,6 +47,9 @@ struct Eng::Base::Reserved
    Eng::Base::MouseButtonCallback mouseButtonCallback;
    Eng::Base::MouseScrollCallback mouseScrollCallback;
 
+   // Far plane:
+   float farPlane;
+
 
    /**
     * Constructor
@@ -56,7 +59,8 @@ struct Eng::Base::Reserved
                 keyboardCallback{ nullptr },
                 mouseCursorCallback{ nullptr },
                 mouseButtonCallback{ nullptr },
-                mouseScrollCallback{ nullptr }
+                mouseScrollCallback{ nullptr },
+                farPlane{ 100.0f }
    {}
 };
 
@@ -436,6 +440,30 @@ uint64_t ENG_API Eng::Base::getFrameNr() const
 glm::ivec2 ENG_API Eng::Base::getWindowSize() const
 {
    return glm::ivec2(reserved->windowSizeX, reserved->windowSizeY);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Set far plane.
+ * @param farPlane far plane value
+ * @return bool
+ */
+bool ENG_API Eng::Base::setFarPlane(float farPlane)
+{
+   reserved->farPlane = farPlane;
+   return true;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Get far plane.
+ * @return float far plane value
+ */
+float ENG_API Eng::Base::getFarPlane() const
+{
+   return reserved->farPlane;
 }
 
 

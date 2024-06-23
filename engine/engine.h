@@ -150,6 +150,8 @@ public: //
    // Get/set:
    uint64_t getFrameNr() const;
    glm::ivec2 getWindowSize() const;
+   bool setFarPlane(float farPlane);
+   float getFarPlane() const;
 
    // Management:
    bool processEvents();

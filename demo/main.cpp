@@ -177,9 +177,10 @@ int main(int argc, char *argv[])
    light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(light.get().getMatrix()[3])));
 
    float nearPlane = 1.0f;
-   float farPlane = 125.0f;
-   float aspectRatio = 1;
-   glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), aspectRatio, nearPlane, farPlane);
+   float farPlane = 200.0f;
+   eng.setFarPlane(farPlane);
+
+   glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), eng.getWindowSize().x / (float)eng.getWindowSize().y, nearPlane, farPlane);
    light.get().setProjMatrix(lightProj);
 
    //std::reference_wrapper<Eng::Light> light2 = dynamic_cast<Eng::Light&>(Eng::Container::getInstance().find("Omni002"));
@@ -193,8 +194,8 @@ int main(int argc, char *argv[])
    // Rendering elements:
    Eng::List list;      
    
-   // Init camera:   
-   camera.setProjMatrix(glm::perspective(glm::radians(45.0f), eng.getWindowSize().x / (float) eng.getWindowSize().y, 1.0f, 125.0f));
+   // Init camera:
+   camera.setProjMatrix(glm::perspective(glm::radians(45.0f), eng.getWindowSize().x / (float) eng.getWindowSize().y, nearPlane, farPlane));
    Eng::Node cameraLookAt = Eng::Node();
    cameraLookAt.setName("CameraLookAt");
    cameraLookAt.setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(-25.0f, 12.5f, 0.0f)));
