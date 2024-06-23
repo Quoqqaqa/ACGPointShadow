@@ -28,30 +28,13 @@ static const std::string pipeline_fs = R"(
     uniform samplerCube skybox;
     uniform float pfc_radius_scale_factor;
 
-    vec3 gridSamplingDisk[20] = vec3[]
-    (
-    vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
-    vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
-    vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
-    vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
-    vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
-    );
-
-    int samples = 20;
     
-    
-    float diskRadius = 0.01;
+   
 
     
     void main()
     {       
-        
-        for(int i = 0; i < samples; ++i)
-        {
-                FragColor += texture(skybox, TexCoords + gridSamplingDisk[i] * diskRadius);
-                
-        }
-        FragColor /= samples;
+        FragColor += texture(skybox, TexCoords);
     }
 )";
 
