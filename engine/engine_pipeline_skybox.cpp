@@ -246,15 +246,8 @@ bool ENG_API Eng::PipelineSkybox::render(const Eng::Texture& texture, const Eng:
     program.render();
     texture.render(0);
 
-    //std::cout << "Proj: " << glm::to_string(camera.getProjMatrix()) << std::endl;
-    //std::cout << "Model: " << glm::to_string(camera.getWorldMatrix()) << std::endl;
-
     program.setMat4("projection", camera.getProjMatrix());
     program.setMat4("modelview", glm::inverse(camera.getWorldMatrix()));
-
-    
-
-    //std::cout << glm::to_string(g) << std::endl;
 
     renderCube();
 
