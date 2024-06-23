@@ -395,7 +395,7 @@ bool ENG_API Eng::Base::processEvents()
  */
 bool ENG_API Eng::Base::clear()
 {
-   glClearColor(1.0f, 0.6f, 0.1f, 1.0f);
+   glClearColor(0.5f, 0.67f, 0.9f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
    // Done:

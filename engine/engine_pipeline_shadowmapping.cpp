@@ -62,7 +62,6 @@ uniform mat4 shadowMatrices[6];
 out vec4 FragPos;
 
 
-
 void main()
 {
     for(int face = 0; face < 6; ++face)

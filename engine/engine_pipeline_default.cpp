@@ -112,7 +112,6 @@ in vec3 normal;
 in vec2 uv;
 in vec3 _fragPos;
 
- 
 // Output to the framebuffer:
 out vec4 outFragment;
 

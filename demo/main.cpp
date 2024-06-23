@@ -165,16 +165,12 @@ int main(int argc, char *argv[])
    /////////////////
    // Loading scene:   
    Eng::Ovo ovo;
-   Eng::Node& root = ovo.load("simple3dScene.ovo");
-   //Eng::Node &root = ovo.load("new.ovo");
+   //Eng::Node& root = ovo.load("simple3dScene.ovo");
+   Eng::Node &root = ovo.load("scene.ovo");
    std::cout << "Scene graph:\n" << root.getTreeAsString() << std::endl;
 
    // Get light ref:
    light = dynamic_cast<Eng::Light&>(Eng::Container::getInstance().find("Omni001"));
-   //light.get().setAmbient({ 0.3f, 0.3f, 0.3f });
-   //light.get().setColor({ 1.5f, 1.5f, 1.5f });
-   //light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f)));
-   light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(light.get().getMatrix()[3])));
 
    float nearPlane = 1.0f;
    float farPlane = 200.0f;
@@ -182,13 +178,14 @@ int main(int argc, char *argv[])
    glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
    light.get().setProjMatrix(lightProj);
 
-   //std::reference_wrapper<Eng::Light> light2 = dynamic_cast<Eng::Light&>(Eng::Container::getInstance().find("Omni002"));
-    //light2.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(light2.get().getMatrix()[3])));
-    //light2.get().setProjMatrix(lightProj);
+   std::reference_wrapper<Eng::Light> light2 = dynamic_cast<Eng::Light&>(Eng::Container::getInstance().find("Omni002"));
+   light2.get().setProjMatrix(lightProj);
+   std::reference_wrapper<Eng::Light> light3 = dynamic_cast<Eng::Light&>(Eng::Container::getInstance().find("Omni003"));
+   light3.get().setProjMatrix(lightProj);
 
-    //Eng::Mesh &hose = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hose001"));
-    //Eng::Mesh &hedra = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hedra001"));
-    //Eng::Mesh &chamfer = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("ChamferCyl001"));
+   Eng::Mesh &hose = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hose001"));
+   Eng::Mesh &hedra = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hedra001"));
+   Eng::Mesh &chamfer = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("ChamferCyl001"));
 
    // Rendering elements:
    Eng::List list;
@@ -213,9 +210,9 @@ int main(int argc, char *argv[])
       // Update viewpoint:
       camera.update();   
 
-      //hose.setMatrix(glm::rotate(hose.getMatrix(), glm::radians(15.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
-      //hedra.setMatrix(glm::rotate(hedra.getMatrix(), glm::radians(30.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
-      //chamfer.setMatrix(glm::rotate(chamfer.getMatrix(), glm::radians(10.0f * fpsFactor), glm::vec3(10.0f, 0.0f, 1.0f)));
+      hose.setMatrix(glm::rotate(hose.getMatrix(), glm::radians(15.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
+      hedra.setMatrix(glm::rotate(hedra.getMatrix(), glm::radians(30.0f * fpsFactor), glm::vec3(0.0f, 1.0f, 0.0f)));
+      chamfer.setMatrix(glm::rotate(chamfer.getMatrix(), glm::radians(10.0f * fpsFactor), glm::vec3(10.0f, 0.0f, 1.0f)));
       
       // Update list:
       list.reset();
@@ -236,7 +233,7 @@ int main(int argc, char *argv[])
       auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0f;
       float fps = (1.0f / deltaTime) * 1000.0f;
       fpsFactor = 1.0f / fps;
-      std::cout << "fps: " << fps << std::endl;
+      //std::cout << "fps: " << fps << std::endl;
    }
    std::cout << "Leaving main loop..." << std::endl;
 
