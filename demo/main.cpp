@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
    Eng::List list;
 
    // Init camera:   
-   camera.setProjMatrix(glm::perspective(glm::radians(45.0f), eng.getWindowSize().x / (float)eng.getWindowSize().y, 1.0f, 125.0f));
+   camera.setProjMatrix(glm::perspective(glm::radians(45.0f), eng.getWindowSize().x / (float)eng.getWindowSize().y, 1.0f, farPlane));
    camera.lookAt(root); // Look at the origin
 
   

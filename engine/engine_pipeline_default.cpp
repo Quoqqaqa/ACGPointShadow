@@ -501,7 +501,8 @@ bool ENG_API Eng::PipelineDefault::render(const glm::mat4& camera, const glm::ma
 
       lightFinalMatrix = light.getProjMatrix() * glm::inverse(lightRe.matrix) * glm::inverse(camera); // To convert from eye coords into light space
       program.setMat4("lightMatrix", lightFinalMatrix);
-      program.setFloat("far_plane", 125.0f);
+      Eng::Base& eng = Eng::Base::getInstance();
+      program.setFloat("far_plane", eng.getFarPlane());
       int db = isDepthBuffer() ? 1 : 0;
       program.setInt("depthBuffer", db);
       reserved->shadowMapping.getShadowMap().render(4);      
