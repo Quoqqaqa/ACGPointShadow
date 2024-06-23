@@ -164,13 +164,13 @@ int main(int argc, char *argv[])
 
    /////////////////
    // Loading scene:   
-   Eng::Ovo ovo; 
-   Eng::Node &root = ovo.load("Simple3dScene.ovo");
+   Eng::Ovo ovo;
+   Eng::Node& root = ovo.load("simple3dScene.ovo");
    //Eng::Node &root = ovo.load("new.ovo");
    std::cout << "Scene graph:\n" << root.getTreeAsString() << std::endl;
-   
+
    // Get light ref:
-   light = dynamic_cast<Eng::Light &>(Eng::Container::getInstance().find("Omni001"));      
+   light = dynamic_cast<Eng::Light&>(Eng::Container::getInstance().find("Omni001"));
    //light.get().setAmbient({ 0.3f, 0.3f, 0.3f });
    //light.get().setColor({ 1.5f, 1.5f, 1.5f });
    //light.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f)));
@@ -179,27 +179,23 @@ int main(int argc, char *argv[])
    float nearPlane = 1.0f;
    float farPlane = 200.0f;
    eng.setFarPlane(farPlane);
-
-   glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), eng.getWindowSize().x / (float)eng.getWindowSize().y, nearPlane, farPlane);
+   glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
    light.get().setProjMatrix(lightProj);
 
    //std::reference_wrapper<Eng::Light> light2 = dynamic_cast<Eng::Light&>(Eng::Container::getInstance().find("Omni002"));
-   //light2.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(light2.get().getMatrix()[3])));
-   //light2.get().setProjMatrix(lightProj);
+    //light2.get().setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(light2.get().getMatrix()[3])));
+    //light2.get().setProjMatrix(lightProj);
 
-   //Eng::Mesh &hose = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hose001"));
-   //Eng::Mesh &hedra = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hedra001"));
-   //Eng::Mesh &chamfer = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("ChamferCyl001"));
+    //Eng::Mesh &hose = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hose001"));
+    //Eng::Mesh &hedra = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("Hedra001"));
+    //Eng::Mesh &chamfer = dynamic_cast<Eng::Mesh &>(Eng::Container::getInstance().find("ChamferCyl001"));
 
    // Rendering elements:
-   Eng::List list;      
-   
-   // Init camera:
-   camera.setProjMatrix(glm::perspective(glm::radians(45.0f), eng.getWindowSize().x / (float) eng.getWindowSize().y, nearPlane, farPlane));
-   Eng::Node cameraLookAt = Eng::Node();
-   cameraLookAt.setName("CameraLookAt");
-   cameraLookAt.setMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(-25.0f, 12.5f, 0.0f)));
-   camera.lookAt(root);
+   Eng::List list;
+
+   // Init camera:   
+   camera.setProjMatrix(glm::perspective(glm::radians(45.0f), eng.getWindowSize().x / (float)eng.getWindowSize().y, 1.0f, 125.0f));
+   camera.lookAt(root); // Look at the origin
 
   
    /////////////
