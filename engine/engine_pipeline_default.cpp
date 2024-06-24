@@ -87,7 +87,7 @@ uniform vec3 mtlAlbedo;
 uniform float mtlOpacity;
 uniform float mtlRoughness;
 uniform float mtlMetalness;
-uniform float acne_bias;
+uniform float bias;
 uniform float pfc_radius_scale_factor;
 
 // Uniform (light):
@@ -142,7 +142,7 @@ float shadowAmount(vec3 fragPos)
     {
         closestDepth = texture(depthMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
         closestDepth *= far_plane;   
-        if(currentDepth - acne_bias > closestDepth)
+        if(currentDepth - bias > closestDepth)
             shadow += 1.0;
     }
     shadow /= float(samples);
@@ -302,7 +302,7 @@ bool ENG_API Eng::PipelineDefault::init()
    }
    this->setProgram(reserved->program);
 
-   reserved->program.setFloat("acne_bias", reserved->acne_bias);
+   reserved->program.setFloat("bias", reserved->acne_bias);
    reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
    // Done: 
    this->setDirty(false);
