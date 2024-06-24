@@ -31,8 +31,14 @@
    // Camera:
    Eng::Camera camera;   
 
+   // Root reference:
+   std::reference_wrapper<Eng::Node> rootRef = Eng::Node::empty;
+
    // Light (loaded from OVO file later):
    std::reference_wrapper<Eng::Light> light = Eng::Light::empty;
+
+   // Tire reference:
+   std::reference_wrapper<Eng::Mesh> tire = Eng::Mesh::empty;
 
    // Pipelines:
    Eng::PipelineDefault dfltPipe;
@@ -42,6 +48,7 @@
    // Flags:
    bool showShadowMap = false;
    bool perspectiveProj = false;
+   bool lookAtRoot;
 
    //Toggle Values for the Presentation
    enum anti_acne_bias_e { ideal_bias, acne_bias, anti_acne_bias_len };
@@ -137,10 +144,13 @@ void keyboardCallback(int key, int scancode, int action, int mods)
        case 'V': dfltPipe.incr_bias(0.05); break;
        case 'Y': dfltPipe.incr_pfc_radius(2.0f); skyboxPipe.incr_pfc_radius(2.0f); break;
        case 'X': dfltPipe.incr_pfc_radius(-2.0f); skyboxPipe.incr_pfc_radius(-2.0f);  break;
-       case ' ': dfltPipe.setFrontFaceCulling(!dfltPipe.isFrontFaceCulling()); std::cout << dfltPipe.isFrontFaceCulling() << std::endl; break;
+       case ' ': dfltPipe.setFrontFaceCulling(!dfltPipe.isFrontFaceCulling()); break;
        // Toggles for the presentation
        case '1': dfltPipe.set_bias(acne_biases[current_bias = (anti_acne_bias_e)((1 + current_bias) % anti_acne_bias_len)]); break;
        case '2': dfltPipe.set_pfc_radius(pcf_radii[current_pcf_radius = (pcf_radius_e)((1 + current_pcf_radius) % pcf_radius_len)]); break;
+
+       case 'P': if (lookAtRoot) { camera.lookAt(tire); lookAtRoot = false; }
+               else { camera.lookAt(rootRef.get()); lookAtRoot = true; } break;
        }
    }
 }
@@ -180,10 +190,12 @@ int main(int argc, char *argv[])
    Eng::Ovo ovo;
    //Eng::Node& root = ovo.load("simple3dScene.ovo");
    Eng::Node &root = ovo.load("scene.ovo");
+   rootRef = root;
    std::cout << "Scene graph:\n" << root.getTreeAsString() << std::endl;
 
    // Get light ref:
    light = dynamic_cast<Eng::Light&>(Eng::Container::getInstance().find("Omni001"));
+   tire = dynamic_cast<Eng::Mesh&>(Eng::Container::getInstance().find("Tube001"));
 
    float nearPlane = 1.0f;
    float farPlane = 200.0f;
@@ -206,7 +218,7 @@ int main(int argc, char *argv[])
    // Init camera:   
    camera.setProjMatrix(glm::perspective(glm::radians(45.0f), eng.getWindowSize().x / (float)eng.getWindowSize().y, 1.0f, farPlane));
    camera.lookAt(root); // Look at the origin
-
+   lookAtRoot = true;
    
   
    /////////////

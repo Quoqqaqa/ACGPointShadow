@@ -45,7 +45,6 @@ uniform mat4 worldMat;
 
 // Varying:
 out vec4 fragPosition;
-out vec4 fragPositionLightSpace;
 out vec3 normal;
 out vec2 uv;
 out vec3 _fragPos;
@@ -56,7 +55,6 @@ void main()
    uv = a_uv;
 
    fragPosition = modelviewMat * vec4(a_vertex, 1.0f);
-   fragPositionLightSpace = lightMatrix * fragPosition;
    _fragPos = (worldMat * vec4(a_vertex, 1.0f)).xyz;
    gl_Position = projectionMat * fragPosition;
 })";
@@ -107,7 +105,6 @@ uniform int depthBuffer;
 
 // Varying:
 in vec4 fragPosition;
-in vec4 fragPositionLightSpace;
 in vec3 normal;
 in vec2 uv;
 in vec3 _fragPos;
@@ -369,6 +366,7 @@ void ENG_API Eng::PipelineDefault::setWireframe(bool flag)
 void ENG_API Eng::PipelineDefault::setFrontFaceCulling(bool flag)
 {
     reserved->shadowMapping.setFrontFaceCulling(flag);
+    std::cout << "Front face culling: " << (isFrontFaceCulling() == 0 ? "OFF" : "ON") << std::endl;
 }
 
 
@@ -417,7 +415,7 @@ void ENG_API Eng::PipelineDefault::incr_pfc_radius(float val)
 {
     reserved->pfc_radius_scale_factor = (float)std::fmax(1.0f, reserved->pfc_radius_scale_factor + val);
     reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
-   
+    std::cout << "PCF radius = " << reserved->pfc_radius_scale_factor << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -430,7 +428,7 @@ void ENG_API Eng::PipelineDefault::set_pfc_radius(float val)
 {
     reserved->pfc_radius_scale_factor = (float)std::fmax(1.0f, val);
     reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
-
+    std::cout << "PCF radius = " << reserved->pfc_radius_scale_factor << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
