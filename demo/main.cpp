@@ -47,8 +47,8 @@
    enum anti_acne_bias_e { ideal_bias, acne_bias, anti_acne_bias_len };
    enum pcf_radius_e { default_pcf_radius, small_pcf_radius, large_pcf_radius, pcf_radius_len };
 
-   const float acne_biases[anti_acne_bias_len] = { 0.0f, 3.0f };
-   const float pcf_radii[pcf_radius_len] = { 30.0f, 1.5f, 100.0f }; 
+   const float acne_biases[anti_acne_bias_len] = { 0.0f, 1.6f };
+   const float pcf_radii[pcf_radius_len] = { 20.0f, 1.5f, 100.0f }; 
 
    anti_acne_bias_e current_bias = ideal_bias;
    pcf_radius_e current_pcf_radius = default_pcf_radius;
