@@ -43,6 +43,15 @@
    bool showShadowMap = false;
    bool perspectiveProj = false;
 
+   //Toggle Values for the Presentation
+   enum anti_acne_bias_e { ideal_bias, acne_bias, anti_acne_bias_len };
+   enum pcf_radius_e { default_pcf_radius, small_pcf_radius, large_pcf_radius, pcf_radius_len };
+
+   const float acne_biases[anti_acne_bias_len] = { 0.0f, 3.0f };
+   const float pcf_radii[pcf_radius_len] = { 3.0f, 1.0f, 100.0f }; 
+
+   anti_acne_bias_e current_bias = ideal_bias;
+   pcf_radius_e current_pcf_radius = default_pcf_radius;
 
 
 ///////////////
@@ -129,6 +138,9 @@ void keyboardCallback(int key, int scancode, int action, int mods)
        case 'Y': dfltPipe.incr_pfc_radius(2.0f); skyboxPipe.incr_pfc_radius(2.0f); break;
        case 'X': dfltPipe.incr_pfc_radius(-2.0f); skyboxPipe.incr_pfc_radius(-2.0f);  break;
        case ' ': dfltPipe.setFrontFaceCulling(!dfltPipe.isFrontFaceCulling()); std::cout << dfltPipe.isFrontFaceCulling() << std::endl; break;
+       // Toggles for the presentation
+       case '1': dfltPipe.set_bias(acne_biases[current_bias = (anti_acne_bias_e)((1 + current_bias) % anti_acne_bias_len)]); break;
+       case '2': dfltPipe.set_pfc_radius(pcf_radii[current_pcf_radius = (pcf_radius_e)((1 + current_pcf_radius) % pcf_radius_len)]); break;
        }
    }
 }
@@ -154,13 +166,14 @@ int main(int argc, char *argv[])
    // Init engine:
    Eng::Base &eng = Eng::Base::getInstance();
    eng.init();
-
+   
    // Register callbacks:
    eng.setMouseCursorCallback(mouseCursorCallback);
    eng.setMouseButtonCallback(mouseButtonCallback);
    eng.setMouseScrollCallback(mouseScrollCallback);
    eng.setKeyboardCallback(keyboardCallback);
-     
+   
+   
 
    /////////////////
    // Loading scene:   
@@ -194,14 +207,13 @@ int main(int argc, char *argv[])
    camera.setProjMatrix(glm::perspective(glm::radians(45.0f), eng.getWindowSize().x / (float)eng.getWindowSize().y, 1.0f, farPlane));
    camera.lookAt(root); // Look at the origin
 
+   
   
    /////////////
    // Main loop:
    std::cout << "Entering main loop..." << std::endl;      
    std::chrono::high_resolution_clock timer;
    float fpsFactor = 0.0f;
-
-
 
    while (eng.processEvents())
    {      

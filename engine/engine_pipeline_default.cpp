@@ -397,6 +397,18 @@ void ENG_API Eng::PipelineDefault::incr_bias(float val)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
+ * set the bias to counteract acne
+ * @param flag acne bias incr
+ */
+void ENG_API Eng::PipelineDefault::set_bias(float val)
+{
+    reserved->acne_bias = (float)std::fmax(0, val);
+    reserved->program.setFloat("acne_bias", reserved->acne_bias);
+    std::cout << "Bias = " << reserved->acne_bias << std::endl;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
  * increments the pfc radius
  * @param flag scale factor of the pcf radius incr
  */
@@ -406,6 +418,19 @@ void ENG_API Eng::PipelineDefault::incr_pfc_radius(float val)
     reserved->pfc_radius_scale_factor = (float)std::fmax(1.0f, reserved->pfc_radius_scale_factor + val);
     reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
    
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * set the pfc radius
+ * @param flag scale factor of the pcf radius incr
+ */
+
+void ENG_API Eng::PipelineDefault::set_pfc_radius(float val)
+{
+    reserved->pfc_radius_scale_factor = (float)std::fmax(1.0f, val);
+    reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

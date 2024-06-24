@@ -83,6 +83,7 @@ void ENG_API Eng::PipelineSkybox::incr_pfc_radius(float val)
 {
     reserved->pfc_radius_scale_factor = (float)std::fmax(1.0f, reserved->pfc_radius_scale_factor + val);
     reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
+    
 }
 
 bool ENG_API Eng::PipelineSkybox::init() {
@@ -103,7 +104,7 @@ bool ENG_API Eng::PipelineSkybox::init() {
     this->setProgram(reserved->program);
     reserved->program.setMat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(100.0f)));
 
-    reserved->pfc_radius_scale_factor = 20.0f;
+
     reserved->program.setFloat("pfc_radius_scale_factor", reserved->pfc_radius_scale_factor);
     
 

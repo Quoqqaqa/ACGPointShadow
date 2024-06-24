@@ -29,6 +29,8 @@ public: //
    void setDepthBuffer(bool flag);
    void incr_bias(float val);
    void incr_pfc_radius(float val);
+   void set_bias(float val);
+   void set_pfc_radius(float val);
    bool isWireframe() const;
    bool isDepthBuffer() const;
    void setFrontFaceCulling(bool flag);
